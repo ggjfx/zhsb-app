@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>YH英语通 · 英语学习助手</title>
+<meta name="theme-color" content="#2563eb">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>📚 YH英语通</h1>
+  <div class="streak" id="hdrStreak">🔥 0 天</div>
+</header>
+
+<main>
+  <!-- ============ 学习 ============ -->
+  <section class="view active" id="view-learn">
+    <div class="card">
+      <div class="row">
+        <span class="lbl">今日进度</span>
+        <span style="display:flex;gap:6px;align-items:center">
+          <button class="icon-btn mini" onclick="targetDec()" title="减少每日目标">−</button>
+          <span class="lbl" id="lpText"></span>
+          <button class="icon-btn mini" onclick="targetInc()" title="增加每日目标">＋</button>
+        </span>
+      </div>
+      <div class="bar"><i id="lpBar" style="width:0%"></i></div>
+    </div>
+    <div class="card">
+      <div class="row"><span class="lbl">选择阶段</span><span class="lbl" id="learnLevelNote"></span></div>
+      <div class="cat-picker">
+        <button class="cat-current" id="catCurrent" onclick="toggleCatMenu()"></button>
+        <div class="cat-menu" id="catMenu"></div>
+      </div>
+      <div class="row" style="gap:10px;margin-top:6px">
+        <button class="btn btn-primary" style="flex:1" onclick="startStudy()">📖 学习</button>
+        <button class="btn btn-mid" style="flex:1" id="btnReview" onclick="startReview()">🔄 复习 (<span id="dueCount">0</span>)</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="lbl">🔎 全词库搜索</div>
+      <div class="srch" style="margin:10px 0 0">
+        <input id="searchInput" placeholder="输入单词或中文，如 abandon / 放弃" autocomplete="off" oninput="onSearch(this.value)">
+      </div>
+      <div id="searchList"></div>
+    </div>
+    <div class="card" id="calCard">
+      <div class="lbl">📅 近 7 天复习</div>
+      <div class="cal" id="calRow"></div>
+    </div>
+    <div class="card" id="wCard">
+      <div class="row" style="justify-content:flex-start;gap:10px">
+        <div class="w-word" id="wWord"></div>
+        <button class="icon-btn" id="wSpeak" title="发音">🔊</button>
+        <button class="w-fav-btn" id="wFav" title="收藏到生词本" style="margin-left:auto">☆</button>
+      </div>
+      <div class="w-ipa"><span id="wIpa"></span><span class="w-pos" id="wPos"></span><span class="w-pos w-lv" id="wLv"></span></div>
+      <button class="btn btn-ghost" id="wShow" style="width:100%;margin-top:16px">👀 显示释义</button>
+      <div id="wDetail" style="display:none;margin-top:8px">
+        <div class="w-cn" id="wMeaning"></div>
+        <div class="w-ex" id="wEx"></div>
+        <div class="w-excn" id="wExCn"></div>
+      </div>
+      <div id="wBtns" style="display:none;margin-top:16px;display:flex;gap:8px"></div>
+    </div>
+    <div id="learnDone" style="display:none"></div>
+  </section>
+
+  <!-- ============ 练习（阅读+完形） ============ -->
+  <section class="view" id="view-practice">
+    <div class="card">
+      <div class="lbl" style="font-size:15px">🤖 AI 阅读理解 <span class="lbl" id="aiStatus"></span></div>
+      <div class="hint">用 DeepSeek 按你选的阶段和难度自动生成一篇阅读理解（需在设置里填 API Key，费用走你自己的 Key）。</div>
+      <div class="ai-row">
+        <select id="aiStage"><option>小学</option><option>初中</option><option>高中</option><option>专升本</option><option>四级</option><option>六级</option></select>
+        <select id="aiDiff"><option>基础</option><option>中级</option><option>高级</option></select>
+        <button class="btn btn-primary" onclick="generateAiReading()">⚡ 生成一篇</button>
+      </div>
+      <div id="aiList"></div>
+    </div>
+    <div class="card">
+      <div class="lbl" style="font-size:15px">🪄 自动出题（无限）</div>
+      <div class="hint">从词库 6000+ 例句自动生成句子填空，永远做不完，做错进错题本</div>
+      <div style="display:flex;gap:10px;margin-top:10px">
+        <button class="btn btn-primary" style="flex:1" onclick="startAutoQuiz(10)">生成 10 题</button>
+        <button class="btn btn-ghost" style="flex:1" onclick="startAutoQuiz(20)">生成 20 题</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="lbl" style="font-size:15px">📖 阅读理解 <span class="lbl">（模拟题 · 按真题题型原创编写）</span></div>
+      <div id="readingList"></div>
+    </div>
+    <div class="card">
+      <div class="lbl" style="font-size:15px">🔤 完形填空 <span class="lbl">（模拟题 · 按真题题型原创编写）</span></div>
+      <div id="clozeList"></div>
+    </div>
+  </section>
+
+  <!-- ============ 阅读做题 ============ -->
+  <section class="view" id="view-read">
+    <div class="card" style="padding:12px 18px">
+      <div class="row">
+        <button class="btn btn-ghost" style="padding:8px 14px" onclick="showView('practice')">← 返回</button>
+        <span class="badge" id="readLevel"></span>
+      </div>
+      <div class="qz-stem" style="margin:10px 0 0;font-size:20px" id="readTitle"></div>
+    </div>
+    <div class="card">
+      <div class="passage" id="readPassage"></div>
+    </div>
+    <div class="card">
+      <div class="row"><span class="lbl">题目</span><span class="lbl" id="readProg"></span></div>
+      <div id="readQs"></div>
+    </div>
+  </section>
+
+  <!-- ============ 完形做题 ============ -->
+  <section class="view" id="view-cloze">
+    <div class="card" style="padding:12px 18px">
+      <div class="row">
+        <button class="btn btn-ghost" style="padding:8px 14px" onclick="showView('practice')">← 返回</button>
+        <span class="badge" id="clozeLevel"></span>
+      </div>
+      <div class="qz-stem" style="margin:10px 0 0;font-size:20px" id="clozeTitle"></div>
+    </div>
+    <div class="card">
+      <div class="passage" id="clozePassage"></div>
+    </div>
+    <div class="card">
+      <div class="lbl" style="margin-bottom:8px">选择答案（点击选项后立即显示对错）</div>
+      <div id="clozeBlanks"></div>
+    </div>
+  </section>
+
+  <!-- ============ 测验 ============ -->
+  <section class="view" id="view-quiz">
+    <div class="card" id="qzSetup">
+      <div class="lbl">题目数量</div>
+      <div class="seg" id="qzCountSeg"></div>
+      <div class="lbl">出题范围</div>
+      <div class="seg wrap" id="qzScopeSeg"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="startQuiz()">开始测验</button>
+      <div class="hint">词汇 70% + 语法单选 30%（仅「全部/未掌握」含语法题）。做错的题自动进错题本。</div>
+    </div>
+    <div id="qzRun" style="display:none">
+      <div class="card">
+        <div class="row">
+          <span class="badge" id="qzType"></span><span class="lbl" id="qzProg"></span>
+        </div>
+        <div class="qz-stem" id="qzStem"></div>
+        <div id="qzOpts"></div>
+        <div class="why" id="qzWhy"></div>
+        <button class="btn btn-primary" id="qzNext" style="display:none;width:100%;margin-top:12px" onclick="nextQuiz()">下一题 →</button>
+      </div>
+    </div>
+    <div class="card" id="qzResult" style="display:none"></div>
+  </section>
+
+  <!-- ============ 错题本 ============ -->
+  <section class="view" id="view-errors">
+    <div class="card" style="display:flex;gap:8px">
+      <button class="btn btn-primary" style="flex:1" onclick="redoWrong()">重做错题</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="clearWrong()">清空错题</button>
+    </div>
+    <div id="errList"></div>
+  </section>
+
+  <!-- ============ 生词本 ============ -->
+  <section class="view" id="view-fav">
+    <div class="card" style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" style="flex:1" onclick="startFavReview()">⭐ 复习生词</button>
+      <button class="btn btn-ghost" style="flex:1" onclick="addUnlearnedToFav()">📥 加入未学词</button>
+      <button class="btn btn-bad" style="flex:1" onclick="clearFavs()">🗑 全部移除</button>
+    </div>
+    <div id="favList"></div>
+  </section>
+
+  <!-- ============ 统计 ============ -->
+  <section class="view" id="view-stats">
+    <div class="grid" id="statGrid"></div>
+    <div class="card"><div class="lbl">今日已学</div><div id="todayList"></div></div>
+  </section>
+
+  <!-- ============ 设置 ============ -->
+  <section class="view" id="view-settings">
+    <div class="card">
+      <div class="lbl">🤖 AI 生成阅读（DeepSeek）</div>
+      <div class="ai-row" style="margin-top:10px">
+        <input id="aiKey" class="srch" style="flex:3;min-width:200px" placeholder="粘贴 API Key（sk-...）" autocomplete="off">
+      </div>
+      <div class="hint">Key 只保存在本机浏览器（localStorage），用于调用 DeepSeek 生成阅读理解，费用由你自己承担。没填 Key 时 AI 生成不可用，其他功能不受影响。</div>
+      <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="saveAiCfg()">💾 保存 AI 配置</button>
+    </div>
+    <div class="card">
+      <div class="lbl">外观</div>
+      <button class="btn btn-ghost" style="width:100%;margin-top:10px" onclick="toggleDark()">🌙 深色模式：<span id="darkLabel">关</span></button>
+    </div>
+    <div class="card">
+      <div class="lbl">数据</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn btn-ghost" onclick="exportData()">💾 导出进度</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">📥 导入进度</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('importCsv').click()">📄 导入单词表</button>
+      </div>
+      <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+      <input type="file" id="importCsv" accept=".csv,.txt" style="display:none">
+      <div class="hint">导入单词表格式：每行一个词，用 Tab 或逗号分隔：<b>单词,音标,词性,释义,例句,例句翻译,级别</b>（级别可写 1~4 或 基础/初级/中级/高级，省略则默认初级）。</div>
+    </div>
+    <div class="card">
+      <div class="lbl">安装为 App</div>
+      <div class="hint">📱 手机（Android 用 Chrome/Edge，iPhone 用 Safari）：打开本应用后，浏览器菜单里选「添加到主屏幕」，之后从主屏图标打开就是全屏 App。<br>💻 电脑（Windows Edge/Chrome）：地址栏右侧点「安装」图标或菜单里选「安装应用」。</div>
+    </div>
+    <div class="card">
+      <div class="lbl" style="color:var(--bad)">危险操作</div>
+      <button class="btn btn-bad" style="width:100%;margin-top:10px" onclick="resetAll()">重置全部进度</button>
+    </div>
+    <div class="card hint">📌 数据保存在浏览器本地，不会上传。定期「导出进度」备份（下载 JSON 文件）。</div>
+  </section>
+</main>
+
+<nav class="tabs">
+  <button data-v="learn" class="active"><span class="ic">📖</span>学习</button>
+  <button data-v="practice"><span class="ic">✍️</span>练习</button>
+  <button data-v="quiz"><span class="ic">🎯</span>测验</button>
+  <button data-v="fav"><span class="ic">⭐</span>生词</button>
+  <button data-v="errors"><span class="ic">❌</span>错题</button>
+  <button data-v="stats"><span class="ic">📊</span>统计</button>
+  <button data-v="settings"><span class="ic">⚙️</span>设置</button>
+</nav>
+</div>
+
+<script src="data/data.js"></script>
+<script src="js/app.js"></script>
+<div id="toast"></div>
+</body>
+</html>
