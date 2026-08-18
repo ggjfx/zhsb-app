@@ -771,8 +771,18 @@ function renderAiList() {
   const list = S.customReading || [];
   if (!list.length) { box.innerHTML = ''; return; }
   box.innerHTML = list.map((r, i) =>
-    '<div class="ai-item" onclick="openAiRead(' + i + ')"><div><div class="t">📖 ' + esc(r.title) + '</div><div class="m">' + r.questions.length + ' 题 · AI 生成</div></div><span class="lbl">去做题 ›</span></div>'
+    '<div class="ai-item"><div style="flex:1" onclick="openAiRead(' + i + ')"><div class="t">📖 ' + esc(r.title) + '</div><div class="m">' + r.questions.length + ' 题 · AI 生成</div></div><button class="w-fav-btn" onclick="delAiReading(' + i + ')" title="删除">🗑</button></div>'
   ).join('');
+}
+function delAiReading(i) {
+  const item = (S.customReading || [])[i];
+  if (!item) return;
+  if (confirm('确定删除《' + item.title + '》？')) {
+    S.customReading.splice(i, 1);
+    save();
+    renderAiCfg();
+    showToast('🗑 已删除');
+  }
 }
 function saveAiCfg() {
   const k = $('aiKey');
