@@ -79,7 +79,8 @@
       <div class="ai-row">
         <select id="aiStage"><option>小学</option><option>初中</option><option>高中</option><option>专升本</option><option>四级</option><option>六级</option></select>
         <select id="aiDiff"><option>基础</option><option>中级</option><option>高级</option></select>
-        <button class="btn btn-primary" onclick="generateAiReading()">⚡ 生成一篇</button>
+        <button class="btn btn-primary" onclick="generateAiReading()">⚡ 生成阅读</button>
+        <button class="btn btn-ghost" id="aiClozeBtn" onclick="generateAiCloze()">🔤 生成完形</button>
       </div>
       <div id="aiList"></div>
     </div>

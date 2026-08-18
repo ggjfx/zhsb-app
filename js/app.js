@@ -19,7 +19,7 @@ function defaultState() {
     statuses: {}, learnedToday: {}, quiz: { n: 0, right: 0 }, wrong: [],
     streak: { last: '', n: 0 }, extraWords: [], srs: {},
     target: 20, targetShownDate: '', lastWord: {},
-    favorites: [], customReading: [], aiKey: '', aiStage: '', aiDiff: '基础',
+    favorites: [], customReading: [], customCloze: [], aiKey: '', aiStage: '', aiDiff: '基础',
     dark: false, learnLevel: 0, hiddenReadings: [], hiddenCloze: []
   };
 }
@@ -301,7 +301,7 @@ function renderLearnDone() {
 
 /* ---------- 练习列表 ---------- */
 function visibleReadings() { return READING.filter(r => (S.hiddenReadings || []).indexOf(r.id) < 0); }
-function visibleClozees() { return CLOZE.filter(c => (S.hiddenCloze || []).indexOf(c.id) < 0); }
+function visibleClozees() { return CLOZE.filter(c => (S.hiddenCloze || []).indexOf(c.id) < 0).concat(S.customCloze || []); }
 function openPractice() {
   const lvBadge = l => '<span class="badge" style="background:' + (l <= 2 ? '#dcfce7;color:#166534' : l === 3 ? '#fef3c7;color:#92400e' : '#fee2e2;color:#991b1b') + '">' + diffName(l) + '</span>';
   $('readingList').innerHTML = visibleReadings().map((r, i) =>
@@ -309,17 +309,28 @@ function openPractice() {
     '<button class="w-fav-btn" style="font-size:18px" onclick="event.stopPropagation();delPrac(\'r\',\'' + esc(r.id) + '\')" title="删除">🗑</button></div>'
   ).join('');
   $('clozeList').innerHTML = visibleClozees().map((c, i) =>
-    '<div class="prac-item" onclick="openCloze(' + i + ')"><div><div class="t">🔤 ' + esc(c.title) + '</div><div class="meta">' + c.blanks.length + ' 空 · 原创模拟</div></div>' + lvBadge(c.level) +
+    '<div class="prac-item" onclick="openCloze(' + i + ')"><div><div class="t">🔤 ' + esc(c.title) + '</div><div class="meta">' + c.blanks.length + ' 空 · ' + (c.custom ? 'AI 生成' : '原创模拟') + '</div></div>' + lvBadge(c.level) +
     '<button class="w-fav-btn" style="font-size:18px" onclick="event.stopPropagation();delPrac(\'c\',\'' + esc(c.id) + '\')" title="删除">🗑</button></div>'
   ).join('');
 }
 function delPrac(kind, id) {
-  const list = kind === 'r' ? READING : CLOZE;
-  const item = list.find(x => x.id === id);
-  if (!item) return;
-  if (!confirm('确定删除《' + item.title + '》？可在设置里恢复。')) return;
   const hidden = kind === 'r' ? (S.hiddenReadings = S.hiddenReadings || []) : (S.hiddenCloze = S.hiddenCloze || []);
-  if (hidden.indexOf(id) < 0) hidden.push(id);
+  const builtin = kind === 'r' ? READING : CLOZE;
+  const item = builtin.find(x => x.id === id);
+  if (item) {
+    if (!confirm('确定删除《' + item.title + '》？可在设置里恢复。')) return;
+    if (hidden.indexOf(id) < 0) hidden.push(id);
+    save();
+    openPractice();
+    showToast('🗑 已删除');
+    return;
+  }
+  // 自定义（AI 生成）
+  const arr = kind === 'r' ? (S.customReading || []) : (S.customCloze || []);
+  const ci = arr.findIndex(x => x.id === id);
+  if (ci < 0) return;
+  if (!confirm('确定删除《' + arr[ci].title + '》？')) return;
+  arr.splice(ci, 1);
   save();
   openPractice();
   showToast('🗑 已删除');
@@ -883,6 +894,78 @@ async function generateAiReading() {
   } catch (e) {
     if (status) status.textContent = '· 生成失败';
     showToast('❌ 生成失败：' + (e.message || e));
+  }
+}
+// AI 生成完形填空
+function parseAiCloze(content) {
+  let text = String(content || '').trim();
+  text = text.replace(/^```(json)?\s*/i, '').replace(/\s*```$/, '');
+  const d = JSON.parse(text);
+  if (!d.title || !d.passage || !Array.isArray(d.blanks) || d.blanks.length < 5) throw new Error('返回内容不完整');
+  const blanks = d.blanks.slice(0, 10).map(b => {
+    if (!b.ans || !Array.isArray(b.opts) || b.opts.length !== 4 || !b.opts.includes(b.ans) || !b.why) throw new Error('题目格式不对');
+    return { ans: b.ans, opts: b.opts, why: b.why };
+  });
+  return { id: 'ai-cloze-' + Date.now(), title: d.title, passage: d.passage, blanks, level: 3, custom: true };
+}
+async function generateAiCloze() {
+  const st = $('aiStage'); if (st) S.aiStage = st.value;
+  const df = $('aiDiff'); if (df) S.aiDiff = df.value;
+  save();
+  if (!S.aiKey) { showToast('⚠️ 请先在设置页填写 API Key'); return; }
+  const status = $('aiStatus');
+  if (status) status.textContent = '· 🤖 生成完形中…';
+  const btn = $('aiClozeBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 生成中…'; }
+  const stageName = S.aiStage || currentStageDefault();
+  const STAGE_INFO = {
+    '小学': '词汇量约 500，以短句和简单句为主，主题贴近日常生活',
+    '初中': '词汇量约 1500，句式简单清晰',
+    '高中': '词汇量约 3500，包含一定复杂句',
+    '专升本': '词汇量约 3500-4000，难度接近大学英语四级，贴合专插本真题风格',
+    '四级': '词汇量约 4500，标准大学英语四级难度',
+    '六级': '词汇量约 5500，含长难句与学术词汇'
+  };
+  const DIFF_INFO = {
+    '基础': '整体简单：短句为主、生词少、题目直白、干扰项弱',
+    '中级': '常规难度：句子长短适中，题目带正常干扰项',
+    '高级': '整体偏难：句子较长、生词偏多、题目陷阱多、干扰性强'
+  };
+  const prompt = '请生成一篇' + stageName + '英语完形填空（按真题题型），要求：\n' +
+    '1. 主题自选（校园/科技/健康/文化/环境/教育等），文章 150-200 词。词汇与句式水平：' + (STAGE_INFO[stageName] || STAGE_INFO['专升本']) + '；难度：' + (DIFF_INFO[S.aiDiff] || DIFF_INFO['基础']) + '\n' +
+    '2. 挖 10 个空，空处用 ____1____、____2____ 这样标记，数字从 1 开始连续递增\n' +
+    '3. 每空 4 个选项，答案必须与正确选项的文字完全一致\n' +
+    '4. 每题附中文解析（含原文依据）\n' +
+    '5. 只输出 JSON，不要 Markdown 代码块围栏，格式如下：\n' +
+    '{"title":"文章标题","passage":"含 ____1____ 占位的文章正文","blanks":[{"ans":"正确选项原文","opts":["A选项","B选项","C选项","D选项"],"why":"解析"}]}';
+  try {
+    const res = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.aiKey },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.8,
+        max_tokens: 8000
+      })
+    });
+    if (!res.ok) {
+      const errText = (await res.text()).slice(0, 300);
+      throw new Error('API ' + res.status + ': ' + errText);
+    }
+    const data = await res.json();
+    const content = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
+    const item = parseAiCloze(content);
+    S.customCloze = S.customCloze || [];
+    S.customCloze.push(item);
+    save();
+    renderAiCfg();
+    showToast('🔤 已生成《' + item.title + '》，去练习页查看');
+  } catch (e) {
+    if (status) status.textContent = '· 生成失败';
+    showToast('❌ 生成失败：' + (e.message || e));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🔤 生成完形'; }
   }
 }
 function parseAiReading(content) {
