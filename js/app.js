@@ -20,7 +20,7 @@ function defaultState() {
     streak: { last: '', n: 0 }, extraWords: [], srs: {},
     target: 20, targetShownDate: '', lastWord: {},
     favorites: [], customReading: [], aiKey: '', aiStage: '', aiDiff: '基础',
-    dark: false, learnLevel: 0
+    dark: false, learnLevel: 0, hiddenReadings: [], hiddenCloze: []
   };
 }
 let S = loadState();
@@ -300,21 +300,46 @@ function renderLearnDone() {
 }
 
 /* ---------- 练习列表 ---------- */
+function visibleReadings() { return READING.filter(r => (S.hiddenReadings || []).indexOf(r.id) < 0); }
+function visibleClozees() { return CLOZE.filter(c => (S.hiddenCloze || []).indexOf(c.id) < 0); }
 function openPractice() {
   const lvBadge = l => '<span class="badge" style="background:' + (l <= 2 ? '#dcfce7;color:#166534' : l === 3 ? '#fef3c7;color:#92400e' : '#fee2e2;color:#991b1b') + '">' + diffName(l) + '</span>';
-  $('readingList').innerHTML = READING.map((r, i) =>
-    '<div class="prac-item" onclick="openRead(' + i + ')"><div><div class="t">📖 ' + esc(r.title) + '</div><div class="meta">' + r.questions.length + ' 题 · 原创模拟</div></div>' + lvBadge(r.level) + '</div>'
+  $('readingList').innerHTML = visibleReadings().map((r, i) =>
+    '<div class="prac-item" onclick="openRead(' + i + ')"><div><div class="t">📖 ' + esc(r.title) + '</div><div class="meta">' + r.questions.length + ' 题 · 原创模拟</div></div>' + lvBadge(r.level) +
+    '<button class="w-fav-btn" style="font-size:18px" onclick="event.stopPropagation();delPrac(\'r\',\'' + esc(r.id) + '\')" title="删除">🗑</button></div>'
   ).join('');
-  $('clozeList').innerHTML = CLOZE.map((c, i) =>
-    '<div class="prac-item" onclick="openCloze(' + i + ')"><div><div class="t">🔤 ' + esc(c.title) + '</div><div class="meta">' + c.blanks.length + ' 空 · 原创模拟</div></div>' + lvBadge(c.level) + '</div>'
+  $('clozeList').innerHTML = visibleClozees().map((c, i) =>
+    '<div class="prac-item" onclick="openCloze(' + i + ')"><div><div class="t">🔤 ' + esc(c.title) + '</div><div class="meta">' + c.blanks.length + ' 空 · 原创模拟</div></div>' + lvBadge(c.level) +
+    '<button class="w-fav-btn" style="font-size:18px" onclick="event.stopPropagation();delPrac(\'c\',\'' + esc(c.id) + '\')" title="删除">🗑</button></div>'
   ).join('');
+}
+function delPrac(kind, id) {
+  const list = kind === 'r' ? READING : CLOZE;
+  const item = list.find(x => x.id === id);
+  if (!item) return;
+  if (!confirm('确定删除《' + item.title + '》？可在设置里恢复。')) return;
+  const hidden = kind === 'r' ? (S.hiddenReadings = S.hiddenReadings || []) : (S.hiddenCloze = S.hiddenCloze || []);
+  if (hidden.indexOf(id) < 0) hidden.push(id);
+  save();
+  openPractice();
+  showToast('🗑 已删除');
+}
+function restoreDefaultPrac() {
+  const n = (S.hiddenReadings || []).length + (S.hiddenCloze || []).length;
+  if (!n) { showToast('没有已删除的题库'); return; }
+  if (confirm('确定恢复全部已删除的内置阅读/完形？')) {
+    S.hiddenReadings = []; S.hiddenCloze = [];
+    save();
+    openPractice();
+    showToast('♻️ 已恢复默认题库');
+  }
 }
 
 /* ---------- 阅读 ---------- */
 let curRead = -1, readAns = {};
 function openRead(i) {
   curRead = i; readAns = {};
-  const r = READING[i];
+  const r = visibleReadings()[i];
   $('readTitle').textContent = r.title;
   $('readLevel').textContent = levelName(r.level) + ' · 阅读';
   $('readPassage').textContent = r.passage;
@@ -322,7 +347,7 @@ function openRead(i) {
   showView('read');
 }
 function renderReadQs() {
-  const r = READING[curRead];
+  const r = visibleReadings()[curRead];
   const answered = Object.keys(readAns).length;
   $('readProg').textContent = answered + ' / ' + r.questions.length;
   $('readQs').innerHTML = r.questions.map((q, qi) => {
@@ -341,7 +366,7 @@ function renderReadQs() {
   }).join('');
 }
 function answerRead(qi, oi) {
-  const q = READING[curRead].questions[qi];
+  const q = visibleReadings()[curRead].questions[qi];
   const okIdx = q.opts.indexOf(q.ans);
   if (oi !== okIdx) {
     S.wrong.unshift({ t: 'reading', q: q.q, opts: q.opts.slice(), ans: q.ans, your: q.opts[oi], why: q.why, ts: Date.now() });
@@ -356,7 +381,7 @@ function answerRead(qi, oi) {
 let curCloze = -1, clozeAns = {};
 function openCloze(i) {
   curCloze = i; clozeAns = {};
-  const c = CLOZE[i];
+  const c = visibleClozees()[i];
   $('clozeTitle').textContent = c.title;
   $('clozeLevel').textContent = levelName(c.level) + ' · 完形';
   renderClozePassage();
@@ -378,13 +403,13 @@ function clozeSegments(passage, doneMap) {
   return html;
 }
 function renderClozePassage() {
-  const c = CLOZE[curCloze];
+  const c = visibleClozees()[curCloze];
   const doneMap = {};
   Object.keys(clozeAns).forEach(k => { doneMap[k] = clozeAns[k]; });
   $('clozePassage').innerHTML = clozeSegments(c.passage, doneMap);
 }
 function renderClozeBlanks() {
-  const c = CLOZE[curCloze];
+  const c = visibleClozees()[curCloze];
   const answered = Object.keys(clozeAns).length;
   $('clozeBlanks').innerHTML = c.blanks.map((b, bi) => {
     const n = bi + 1;
@@ -404,7 +429,7 @@ function renderClozeBlanks() {
     '<div style="margin-top:12px" class="lbl">完成 ' + answered + ' / ' + c.blanks.length + '</div>';
 }
 function answerCloze(n, oi) {
-  const c = CLOZE[curCloze];
+  const c = visibleClozees()[curCloze];
   const b = c.blanks[n - 1];
   const okIdx = b.opts.indexOf(b.ans);
   if (oi !== okIdx) {
