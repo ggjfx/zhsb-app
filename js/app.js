@@ -11,6 +11,7 @@ const $ = id => document.getElementById(id);
 const wordCats = w => w[6] || [];
 const catName = c => CATS[c] || '';
 const diffName = d => DIFF[d] || '';
+const levelName = d => DIFF[d] || ''; // 阅读/完形难度标签（兼容别名）
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 function defaultState() {
@@ -781,6 +782,15 @@ function saveAiCfg() {
   save();
   renderAiCfg();
   showToast(S.aiKey ? '✅ AI 配置已保存' : 'ℹ️ 未输入新 Key，保持原 Key 不变');
+}
+function removeAiKey() {
+  if (!S.aiKey) { showToast('当前没有保存 Key'); return; }
+  if (confirm('确定移除已保存的 API Key？移除后 AI 生成需重新填写 Key。')) {
+    S.aiKey = '';
+    save();
+    renderAiCfg();
+    showToast('🗑 API Key 已移除');
+  }
 }
 async function generateAiReading() {
   const st = $('aiStage'); if (st) S.aiStage = st.value;
