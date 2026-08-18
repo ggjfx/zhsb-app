@@ -346,6 +346,31 @@ function restoreDefaultPrac() {
   }
 }
 
+/* ---------- 点词查义 ---------- */
+function tapWords(text) {
+  return String(text).split(/(\b[\w'-]+\b)/g).map(seg => {
+    if (/^[\w'-]+$/.test(seg)) {
+      return '<span class="tap-word" onclick="wordPop(\'' + esc(seg) + '\')">' + esc(seg) + '</span>';
+    }
+    return esc(seg);
+  }).join('');
+}
+function wordPop(word) {
+  const w = words().find(x => x[0].toLowerCase() === String(word).toLowerCase());
+  $('wpWord').textContent = word;
+  if (w) {
+    $('wpIpa').textContent = w[1] || '';
+    $('wpCn').textContent = (w[2] ? w[2] + ' ' : '') + (w[3] || '');
+  } else {
+    $('wpIpa').textContent = '';
+    $('wpCn').textContent = '词库未收录这个词';
+  }
+  $('wordPop').style.display = 'block';
+  speak(word);
+}
+function hideWordPop() { $('wordPop').style.display = 'none'; }
+$('wpSpeak').onclick = () => { const w = $('wpWord').textContent; if (w) speak(w); };
+
 /* ---------- 阅读 ---------- */
 let curRead = -1, readAns = {};
 function openRead(i) {
@@ -353,7 +378,7 @@ function openRead(i) {
   const r = visibleReadings()[i];
   $('readTitle').textContent = r.title;
   $('readLevel').textContent = levelName(r.level) + ' · 阅读';
-  $('readPassage').textContent = r.passage;
+  $('readPassage').innerHTML = tapWords(r.passage);
   renderReadQs();
   showView('read');
 }
@@ -403,7 +428,7 @@ function clozeSegments(passage, doneMap) {
   const parts = passage.split(/____(\d+)____/g);
   let html = '';
   for (let k = 0; k < parts.length; k++) {
-    if (k % 2 === 0) html += esc(parts[k]);
+    if (k % 2 === 0) html += tapWords(parts[k]);
     else {
       const n = parseInt(parts[k], 10);
       const st = doneMap[n];
@@ -986,7 +1011,7 @@ function openAiRead(i) {
   readAns = {};
   $('readTitle').textContent = r.title;
   $('readLevel').textContent = 'AI 生成 · 阅读';
-  $('readPassage').textContent = r.passage;
+  $('readPassage').innerHTML = tapWords(r.passage);
   renderAiQs(r);
   showView('read');
 }

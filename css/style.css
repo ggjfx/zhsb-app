@@ -130,6 +130,10 @@ nav.tabs button.active{color:var(--p);font-weight:700}
   max-width:80%;text-align:center;
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* 点词查义 */
+.tap-word{cursor:pointer;border-bottom:1px dashed var(--sub);transition:background .15s}
+.tap-word:active{background:#dbeafe;border-radius:3px}
+[data-theme="dark"] .tap-word:active{background:#1e3a5f}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .chip{font-size:12px;background:#f1f5f9;border-radius:99px;padding:4px 10px;color:var(--sub)}
 /* 复习日历条 */

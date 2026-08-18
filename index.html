@@ -227,6 +227,16 @@
     </div>
     <div class="card hint">📌 数据保存在浏览器本地，不会上传。定期「导出进度」备份（下载 JSON 文件）。</div>
   </section>
+  <!-- ============ 点词释义弹层 ============ -->
+  <div id="wordPop" style="display:none;position:fixed;left:12px;right:12px;bottom:92px;z-index:300;background:var(--card);border-radius:16px;padding:16px;box-shadow:0 12px 36px rgba(0,0,0,.25);border:1px solid var(--line)">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <b style="font-size:18px" id="wpWord"></b>
+      <button class="icon-btn" id="wpSpeak" title="发音">🔊</button>
+    </div>
+    <div style="color:var(--sub);font-size:12px;margin-top:2px" id="wpIpa"></div>
+    <div style="font-size:14px;margin-top:6px;line-height:1.7" id="wpCn"></div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:12px" onclick="hideWordPop()">关闭</button>
+  </div>
 </main>
 
 <nav class="tabs">
