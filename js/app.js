@@ -20,7 +20,7 @@ function defaultState() {
     streak: { last: '', n: 0 }, extraWords: [], srs: {},
     target: 20, targetShownDate: '', lastWord: {},
     favorites: [], customReading: [], customCloze: [], aiKey: '', aiStage: '', aiDiff: '基础',
-    dark: false, learnLevel: 0, hiddenReadings: [], hiddenCloze: []
+    dark: false, learnLevel: 0, hiddenReadings: [], hiddenCloze: [], aiWordCache: {}
   };
 }
 let S = loadState();
@@ -361,12 +361,63 @@ function wordPop(word) {
   if (w) {
     $('wpIpa').textContent = w[1] || '';
     $('wpCn').textContent = (w[2] ? w[2] + ' ' : '') + (w[3] || '');
-  } else {
-    $('wpIpa').textContent = '';
-    $('wpCn').textContent = '词库未收录这个词';
+    $('wordPop').style.display = 'block';
+    speak(word);
+    return;
   }
-  $('wordPop').style.display = 'block';
-  speak(word);
+  // 词库未收录：先查 AI 缓存，没有再调 AI 翻译
+  const key = String(word).toLowerCase();
+  const cached = (S.aiWordCache || {})[key];
+  if (cached) {
+    $('wpIpa').textContent = cached.ipa || '';
+    $('wpCn').textContent = cached.cn || '';
+    $('wordPop').style.display = 'block';
+    speak(word);
+    return;
+  }
+  $('wpIpa').textContent = '';
+  if (S.aiKey) {
+    $('wpCn').textContent = '🤖 AI 翻译中…';
+    $('wordPop').style.display = 'block';
+    speak(word);
+    aiTranslateWord(word);
+  } else {
+    $('wpCn').textContent = '词库未收录。填写 API Key 后可用 AI 翻译';
+    $('wordPop').style.display = 'block';
+    speak(word);
+  }
+}
+async function aiTranslateWord(word) {
+  try {
+    const res = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': '***' + S.aiKey },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [{ role: 'user', content: '你是英汉词典。翻译单词或短语 "' + word + '"，只输出 JSON：{"ipa":"英式音标,可空","cn":"简短中文释义,含词性如 n. 名词"}' }],
+        temperature: 0.3,
+        max_tokens: 200
+      })
+    });
+    if (!res.ok) throw new Error('API ' + res.status);
+    const data = await res.json();
+    const content = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
+    let txt = String(content || '').trim().replace(/^```(json)?\s*/i, '').replace(/\s*```$/, '');
+    const d = JSON.parse(txt);
+    const cn = d.cn || '（AI 未能翻译）';
+    const ipa = d.ipa || '';
+    S.aiWordCache = S.aiWordCache || {};
+    S.aiWordCache[String(word).toLowerCase()] = { ipa: ipa, cn: cn };
+    save();
+    if ($('wpWord').textContent.toLowerCase() === String(word).toLowerCase()) {
+      $('wpIpa').textContent = ipa;
+      $('wpCn').textContent = cn;
+    }
+  } catch (e) {
+    if ($('wpWord').textContent.toLowerCase() === String(word).toLowerCase()) {
+      $('wpCn').textContent = 'AI 翻译失败：' + (e.message || e);
+    }
+  }
 }
 function hideWordPop() { $('wordPop').style.display = 'none'; }
 $('wpSpeak').onclick = () => { const w = $('wpWord').textContent; if (w) speak(w); };
