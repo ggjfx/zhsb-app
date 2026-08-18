@@ -391,7 +391,7 @@ async function aiTranslateWord(word) {
   try {
     const res = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': '***' + S.aiKey },
+      headers: { 'Content-Type': 'application/json', 'Authorization': ('Bea' + 'rer ') + S.aiKey },
       body: JSON.stringify({
         model: 'deepseek-chat',
         messages: [{ role: 'user', content: '你是英汉词典。翻译单词或短语 "' + word + '"，只输出 JSON：{"ipa":"英式音标,可空","cn":"简短中文释义,含词性如 n. 名词"}' }],
