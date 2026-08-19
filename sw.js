@@ -1,5 +1,5 @@
 /* YH英语通 Service Worker：缓存应用外壳，支持离线使用 */
-const CACHE = 'zhsb-v1';
+const CACHE = 'zhsb-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -26,16 +26,16 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  // 优先网络（在线永远用最新版，部署后刷新即生效）；失败回退缓存（离线可用）
   e.respondWith(
-    caches.match(e.request).then(hit => {
-      if (hit) return hit;
-      return fetch(e.request).then(res => {
-        const copy = res.clone();
-        if (res.ok && e.request.url.startsWith(self.location.origin)) {
-          caches.open(CACHE).then(c => c.put(e.request, copy));
-        }
-        return res;
-      }).catch(() => caches.match('./index.html'));
-    })
+    fetch(e.request).then(res => {
+      const copy = res.clone();
+      if (res.ok && e.request.url.startsWith(self.location.origin)) {
+        caches.open(CACHE).then(c => c.put(e.request, copy));
+      }
+      return res;
+    }).catch(() =>
+      caches.match(e.request).then(hit => hit || caches.match('./index.html'))
+    )
   );
 });
