@@ -94,6 +94,8 @@ function showView(v) {
   if (v === 'fav') renderFavs();
   if (v === 'errors') openErrors();
   if (v === 'stats') openStats();
+  const due = $('hdrDue');
+  if (due) due.textContent = '🔁 待复习 ' + dueWords().length;
   $('hdrStreak').textContent = '🔥 ' + S.streak.n + ' 天';
 }
 document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => showView(b.dataset.v));

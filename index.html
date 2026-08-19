@@ -13,8 +13,15 @@
 <body>
 <div class="app">
 <header>
-  <h1>📚 YH英语通</h1>
-  <div class="streak" id="hdrStreak">🔥 0 天</div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <h1>📚 YH英语通</h1>
+    <span class="hdr-sub">英语学习助手</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="icon-btn" id="hdrDark" onclick="toggleDark()" title="深色模式">🌙</button>
+    <span class="pill" id="hdrDue">🔁 待复习 0</span>
+    <span class="streak" id="hdrStreak">🔥 0 天</span>
+  </div>
 </header>
 
 <main>

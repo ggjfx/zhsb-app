@@ -28,6 +28,12 @@ body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"PingFang SC","Micros
 header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--line);padding:14px 18px;padding-top:calc(14px + env(safe-area-inset-top));display:flex;justify-content:space-between;align-items:center}
 header h1{font-size:17px;font-weight:700}
 header .streak{font-size:13px;color:var(--mid);font-weight:600}
+.hdr-sub{display:none;font-size:13px;color:var(--sub);font-weight:500}
+#hdrDue,#hdrDark{display:none}
+.pill{font-size:12px;font-weight:700;background:#eef2ff;color:var(--p2);padding:4px 12px;border-radius:99px}
+.pill.mid{background:#fef3c7;color:#92400e}
+[data-theme="dark"] .pill{background:#1e293b;color:#93c5fd}
+[data-theme="dark"] .pill.mid{background:#422006;color:#fde68a}
 main{padding:16px 16px 90px}
 section.view{display:none}
 section.view.active{display:block;animation:fade .18s ease}
@@ -149,6 +155,11 @@ nav.tabs button.active{color:var(--p);font-weight:700}
   nav.tabs button .ic { font-size: 20px; }
   nav.tabs button.active { background: #eef2ff; }
   [data-theme="dark"] nav.tabs button.active { background: #1e293b; }
+  nav.tabs button:hover { background: #f1f5f9; }
+  [data-theme="dark"] nav.tabs button:hover { background: #1a2436; }
+  .hdr-sub { display: inline; }
+  #hdrDark { display: inline-flex; }
+  #hdrDue { display: inline-block; }
   /* 头部与内容右移 */
   header { margin-left: 200px; padding: 16px 32px; }
   header h1 { font-size: 19px; }
