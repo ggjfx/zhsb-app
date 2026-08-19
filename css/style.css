@@ -1,4 +1,4 @@
-:root{--p:#2563eb;--p2:#1d4ed8;--bg:#f1f5f9;--card:#fff;--ok:#16a34a;--mid:#d97706;--bad:#dc2626;--txt:#0f172a;--sub:#64748b;--line:#e2e8f0}
+:root{--p:#2563eb;--p2:#1d4ed8;--bg:#f1f5f9;--card:#fff;--ok:#16a34a;--mid:#d97706;--bad:#dc2626;--txt:#0f172a;--sub:#64748b;--line:#e2e8f0;--side:#0f1b33}
 /* 深色模式 */
 [data-theme="dark"]{--p:#3b82f6;--p2:#60a5fa;--bg:#0b1220;--card:#151e2e;--ok:#22c55e;--mid:#f59e0b;--bad:#ef4444;--txt:#e2e8f0;--sub:#94a3b8;--line:#263248}
 [data-theme="dark"] .opt{background:#1a2436;border-color:#2c3a52}
@@ -136,34 +136,46 @@ nav.tabs button.active{color:var(--p);font-weight:700}
   max-width:80%;text-align:center;
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-/* 平板/宽屏适配：底部 tab → 左侧边栏（≥880px） */
+/* 平板/宽屏适配：底部 tab → 桌面式左侧边栏（≥880px） */
 @media (min-width: 880px) {
-  .app { max-width: 1280px; }
-  /* 左侧固定侧边栏 */
+  body { background: var(--bg); }
+  .app { max-width: none; min-height: 100vh; }
+  /* 顶栏：深蓝桌面式 */
+  header {
+    background: var(--side); color: #fff; border-bottom: none;
+    padding: 0 26px; height: 52px;
+    position: sticky; top: 0;
+    margin-left: 200px;
+  }
+  header h1 { color: #fff; font-size: 16px; }
+  header .streak { color: #fbbf24; }
+  .hdr-sub { color: #94a3b8; }
+  header .pill { background: #1e293b; color: #e2e8f0; }
+  header .pill.mid { background: #3b2f1a; color: #fbbf24; }
+  header .icon-btn { background: #1e293b; }
+  /* 侧边栏：深蓝桌面式 */
   nav.tabs {
-    position: fixed; top: 0; left: 50%; transform: translateX(-640px);
+    position: fixed; top: 0; left: 0; bottom: 0;
     width: 200px; height: 100vh;
+    background: var(--side);
     flex-direction: column; align-items: stretch;
-    border-top: none; border-right: 1px solid var(--line);
-    padding: 86px 10px 24px;
+    border-top: none; border-right: none;
+    padding: 66px 10px 24px;
+    transform: none;
   }
   nav.tabs button {
     flex-direction: row; justify-content: flex-start; gap: 12px;
-    padding: 13px 16px; font-size: 14px; border-radius: 10px;
-    margin-bottom: 2px;
+    padding: 12px 16px; font-size: 14px; border-radius: 10px;
+    margin-bottom: 2px; color: #cbd5e1;
   }
-  nav.tabs button .ic { font-size: 20px; }
-  nav.tabs button.active { background: #eef2ff; }
-  [data-theme="dark"] nav.tabs button.active { background: #1e293b; }
-  nav.tabs button:hover { background: #f1f5f9; }
-  [data-theme="dark"] nav.tabs button:hover { background: #1a2436; }
+  nav.tabs button .ic { font-size: 17px; }
+  nav.tabs button:hover { background: #1e293b; color: #fff; }
+  nav.tabs button.active { background: var(--p); color: #fff; }
+  /* 内容区 */
+  main { margin-left: 200px; padding: 22px; max-width: none; }
   .hdr-sub { display: inline; }
   #hdrDark { display: inline-flex; }
   #hdrDue { display: inline-block; }
-  /* 头部与内容右移 */
-  header { margin-left: 200px; padding: 16px 32px; }
-  header h1 { font-size: 19px; }
-  main { margin-left: 200px; padding: 26px 36px 60px; max-width: none; }
   /* 学习页两列 + 单词卡限宽居中 */
   #view-learn { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
   #view-learn .card { margin-bottom: 0; }
