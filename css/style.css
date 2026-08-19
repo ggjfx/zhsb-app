@@ -130,30 +130,58 @@ nav.tabs button.active{color:var(--p);font-weight:700}
   max-width:80%;text-align:center;
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-/* 平板/宽屏适配 */
-@media (min-width: 700px) {
-  .app, nav.tabs { max-width: 1100px; }
-  main { padding: 24px 28px 110px; }
-  header { padding-left: 28px; padding-right: 28px; }
-  header h1 { font-size: 20px; }
-  header .streak { font-size: 14px; }
-  /* 学习页：卡片两列，单词卡/完成页通栏限宽居中 */
+/* 平板/宽屏适配：底部 tab → 左侧边栏（≥880px） */
+@media (min-width: 880px) {
+  .app { max-width: 1280px; }
+  /* 左侧固定侧边栏 */
+  nav.tabs {
+    position: fixed; top: 0; left: 50%; transform: translateX(-640px);
+    width: 200px; height: 100vh;
+    flex-direction: column; align-items: stretch;
+    border-top: none; border-right: 1px solid var(--line);
+    padding: 86px 10px 24px;
+  }
+  nav.tabs button {
+    flex-direction: row; justify-content: flex-start; gap: 12px;
+    padding: 13px 16px; font-size: 14px; border-radius: 10px;
+    margin-bottom: 2px;
+  }
+  nav.tabs button .ic { font-size: 20px; }
+  nav.tabs button.active { background: #eef2ff; }
+  [data-theme="dark"] nav.tabs button.active { background: #1e293b; }
+  /* 头部与内容右移 */
+  header { margin-left: 200px; padding: 16px 32px; }
+  header h1 { font-size: 19px; }
+  main { margin-left: 200px; padding: 26px 36px 60px; max-width: none; }
+  /* 学习页两列 + 单词卡限宽居中 */
   #view-learn { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
   #view-learn .card { margin-bottom: 0; }
   #view-learn .card:nth-child(5), #view-learn .card:nth-child(6) { grid-column: 1 / -1; }
-  #view-learn #wCard { max-width: 640px; margin-left: auto; margin-right: auto; width: 100%; }
-  /* 阅读/完形正文限宽居中，行宽舒适 */
-  #view-read .card, #view-cloze .card { max-width: 800px; margin-left: auto; margin-right: auto; }
+  #view-learn #wCard { max-width: 660px; margin-left: auto; margin-right: auto; width: 100%; }
+  /* 阅读/完形正文限宽 */
+  #view-read .card, #view-cloze .card { max-width: 840px; margin-left: auto; margin-right: auto; }
   .passage { font-size: 16px; line-height: 2; }
   /* 列表两列 */
   #readingList, #clozeList, #favList, #aiList, #searchList { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   #readingList .prac-item, #clozeList .prac-item, #favList .fav-item, #aiList .ai-item, #searchList .srch-item { margin-top: 0; }
-  /* 统计 4 列 */
   .grid { grid-template-columns: repeat(4, 1fr); }
-  /* 点词释义弹层居中限宽 */
+  #wordPop { left: calc(50% + 100px); transform: translateX(-50%); width: 420px; right: auto; }
+}
+/* 中等宽度（700-880）：保持两列手机式 */
+@media (min-width: 700px) and (max-width: 879px) {
+  .app, nav.tabs { max-width: 1000px; }
+  main { padding: 24px 28px 110px; }
+  header { padding-left: 28px; padding-right: 28px; }
+  #view-learn { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  #view-learn .card { margin-bottom: 0; }
+  #view-learn .card:nth-child(5), #view-learn .card:nth-child(6) { grid-column: 1 / -1; }
+  #view-learn #wCard { max-width: 640px; margin-left: auto; margin-right: auto; width: 100%; }
+  #view-read .card, #view-cloze .card { max-width: 800px; margin-left: auto; margin-right: auto; }
+  .passage { font-size: 16px; line-height: 2; }
+  #readingList, #clozeList, #favList, #aiList, #searchList { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  #readingList .prac-item, #clozeList .prac-item, #favList .fav-item, #aiList .ai-item, #searchList .srch-item { margin-top: 0; }
+  .grid { grid-template-columns: repeat(4, 1fr); }
   #wordPop { left: 50%; right: auto; width: 420px; transform: translateX(-50%); }
-  /* 设置页按钮排布更宽 */
-  .ai-row select { font-size: 14px; padding: 12px; }
 }
 /* 点词查义 */
 .tap-word{cursor:pointer;border-bottom:1px dashed var(--sub);transition:background .15s}
