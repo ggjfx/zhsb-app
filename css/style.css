@@ -177,7 +177,6 @@ nav.tabs button.active{color:var(--p);font-weight:700}
   #hdrDark { display: inline-flex; }
   #hdrDue { display: inline-block; }
   /* 学习页：自然顺序排列（不强行两列），单词卡限宽居中 */
-  #view-learn { display: block; }
   #view-learn .card { margin-bottom: 14px; }
   #view-learn #wCard { max-width: 660px; margin-left: auto; margin-right: auto; width: 100%; }
   #view-learn #learnDone { max-width: 660px; margin-left: auto; margin-right: auto; }
@@ -195,7 +194,6 @@ nav.tabs button.active{color:var(--p);font-weight:700}
   .app, nav.tabs { max-width: 1000px; }
   main { padding: 24px 28px 110px; }
   header { padding-left: 28px; padding-right: 28px; }
-  #view-learn { display: block; }
   #view-learn .card { margin-bottom: 14px; }
   #view-learn #wCard { max-width: 640px; margin-left: auto; margin-right: auto; width: 100%; }  #view-read .card, #view-cloze .card { max-width: 800px; margin-left: auto; margin-right: auto; }
   .passage { font-size: 16px; line-height: 2; }
