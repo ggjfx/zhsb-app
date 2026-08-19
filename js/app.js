@@ -305,12 +305,14 @@ function visibleClozees() { return CLOZE.filter(c => (S.hiddenCloze || []).index
 function openPractice() {
   const lvBadge = l => '<span class="badge" style="background:' + (l <= 2 ? '#dcfce7;color:#166534' : l === 3 ? '#fef3c7;color:#92400e' : '#fee2e2;color:#991b1b') + '">' + diffName(l) + '</span>';
   $('readingList').innerHTML = visibleReadings().map((r, i) =>
-    '<div class="prac-item" onclick="openRead(' + i + ')"><div><div class="t">📖 ' + esc(r.title) + '</div><div class="meta">' + r.questions.length + ' 题 · 原创模拟</div></div>' + lvBadge(r.level) +
-    '<button class="w-fav-btn" style="font-size:18px" onclick="event.stopPropagation();delPrac(\'r\',\'' + esc(r.id) + '\')" title="删除">🗑</button></div>'
+    '<div class="prac-item" onclick="openRead(' + i + ')"><div style="flex:1"><div class="t">📖 ' + esc(r.title) + '</div><div class="meta">' + r.questions.length + ' 题 · 原创模拟</div></div>' +
+    '<span style="display:flex;align-items:center;gap:6px">' + lvBadge(r.level) +
+    '<button class="w-fav-btn" style="font-size:18px" onclick="event.stopPropagation();delPrac(\'r\',\'' + esc(r.id) + '\')" title="删除">🗑</button></span></div>'
   ).join('');
   $('clozeList').innerHTML = visibleClozees().map((c, i) =>
-    '<div class="prac-item" onclick="openCloze(' + i + ')"><div><div class="t">🔤 ' + esc(c.title) + '</div><div class="meta">' + c.blanks.length + ' 空 · ' + (c.custom ? 'AI 生成' : '原创模拟') + '</div></div>' + lvBadge(c.level) +
-    '<button class="w-fav-btn" style="font-size:18px" onclick="event.stopPropagation();delPrac(\'c\',\'' + esc(c.id) + '\')" title="删除">🗑</button></div>'
+    '<div class="prac-item" onclick="openCloze(' + i + ')"><div style="flex:1"><div class="t">🔤 ' + esc(c.title) + '</div><div class="meta">' + c.blanks.length + ' 空 · ' + (c.custom ? 'AI 生成' : '原创模拟') + '</div></div>' +
+    '<span style="display:flex;align-items:center;gap:6px">' + lvBadge(c.level) +
+    '<button class="w-fav-btn" style="font-size:18px" onclick="event.stopPropagation();delPrac(\'c\',\'' + esc(c.id) + '\')" title="删除">🗑</button></span></div>'
   ).join('');
 }
 function delPrac(kind, id) {
