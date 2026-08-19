@@ -176,11 +176,11 @@ nav.tabs button.active{color:var(--p);font-weight:700}
   .hdr-sub { display: inline; }
   #hdrDark { display: inline-flex; }
   #hdrDue { display: inline-block; }
-  /* 学习页两列 + 单词卡限宽居中 */
-  #view-learn { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
-  #view-learn .card { margin-bottom: 0; }
-  #view-learn .card:nth-child(5), #view-learn .card:nth-child(6) { grid-column: 1 / -1; }
+  /* 学习页：自然顺序排列（不强行两列），单词卡限宽居中 */
+  #view-learn { display: block; }
+  #view-learn .card { margin-bottom: 14px; }
   #view-learn #wCard { max-width: 660px; margin-left: auto; margin-right: auto; width: 100%; }
+  #view-learn #learnDone { max-width: 660px; margin-left: auto; margin-right: auto; }
   /* 阅读/完形正文限宽 */
   #view-read .card, #view-cloze .card { max-width: 840px; margin-left: auto; margin-right: auto; }
   .passage { font-size: 16px; line-height: 2; }
@@ -195,11 +195,9 @@ nav.tabs button.active{color:var(--p);font-weight:700}
   .app, nav.tabs { max-width: 1000px; }
   main { padding: 24px 28px 110px; }
   header { padding-left: 28px; padding-right: 28px; }
-  #view-learn { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
-  #view-learn .card { margin-bottom: 0; }
-  #view-learn .card:nth-child(5), #view-learn .card:nth-child(6) { grid-column: 1 / -1; }
-  #view-learn #wCard { max-width: 640px; margin-left: auto; margin-right: auto; width: 100%; }
-  #view-read .card, #view-cloze .card { max-width: 800px; margin-left: auto; margin-right: auto; }
+  #view-learn { display: block; }
+  #view-learn .card { margin-bottom: 14px; }
+  #view-learn #wCard { max-width: 640px; margin-left: auto; margin-right: auto; width: 100%; }  #view-read .card, #view-cloze .card { max-width: 800px; margin-left: auto; margin-right: auto; }
   .passage { font-size: 16px; line-height: 2; }
   #readingList, #clozeList, #favList, #aiList, #searchList { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   #readingList .prac-item, #clozeList .prac-item, #favList .fav-item, #aiList .ai-item, #searchList .srch-item { margin-top: 0; }
